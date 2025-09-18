@@ -1,0 +1,390 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow-x: hidden;
+}
+
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forms-container {
+  position: relative;
+  width: 900px;
+  height: 550px;
+  background: #f7f5f3;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.signin-signup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.container.sign-up-mode .signin-signup {
+  transform: translateX(-50%);
+}
+
+/* Form and Panel Pairs */
+.form-panel-pair {
+  width: 50%;
+  height: 100%;
+  display: flex;
+}
+
+/* Sign In Styles */
+.signin-pair .sign-in-form {
+  width: 50%;
+  background: #f7f5f3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  border-radius: 24px 0 0 24px;
+}
+
+.signin-pair .signin-panel {
+  width: 50%;
+  background: linear-gradient(135deg, #5d4e75 0%, #8b5a83 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #f7f5f3;
+  text-align: center;
+  padding: 0 40px;
+  border-radius: 0 24px 24px 0;
+  position: relative;
+}
+
+/* Sign Up Styles */
+.signup-pair .signup-panel {
+  width: 50%;
+  background: linear-gradient(135deg, #6c5b7b 0%, #c06c84 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #f7f5f3;
+  text-align: center;
+  padding: 0 40px;
+  border-radius: 24px 0 0 24px;
+  position: relative;
+}
+
+.signup-pair .sign-up-form {
+  width: 50%;
+  background: #f7f5f3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  border-radius: 0 24px 24px 0;
+}
+
+/* Typography */
+.title {
+  font-size: 2rem;
+  color: #3a3a3a;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.panel-content h3 {
+  font-weight: 600;
+  font-size: 1.75rem;
+  margin-bottom: 12px;
+  color: #f7f5f3;
+}
+
+.panel-content p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  opacity: 0.9;
+  color: #f7f5f3;
+}
+
+/* Social Icons */
+.social-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 12px;
+}
+
+.social-icon {
+  height: 42px;
+  width: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #666;
+  border-radius: 12px;
+  border: 1.5px solid #d4d0cc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  background: #ece9e6;
+}
+
+.social-icon:hover {
+  border-color: #8b5a83;
+  color: #8b5a83;
+  background: #f7f5f3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 90, 131, 0.2);
+}
+
+.social-text {
+  font-size: 0.875rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Input Fields */
+.input-field {
+  width: 100%;
+  max-width: 280px;
+  background: #ece9e6;
+  margin: 10px 0;
+  height: 50px;
+  border-radius: 14px;
+  padding: 0 18px;
+  transition: all 0.3s ease;
+  border: 1.5px solid #d4d0cc;
+}
+
+.input-field input {
+  background: transparent;
+  outline: none;
+  border: none;
+  font-weight: 400;
+  font-size: 1rem;
+  color: #3a3a3a;
+  width: 100%;
+  height: 100%;
+}
+
+.input-field input::placeholder {
+  color: #888;
+  font-weight: 400;
+}
+
+.input-field:focus-within {
+  background: #f7f5f3;
+  border-color: #8b5a83;
+  box-shadow: 0 0 0 3px rgba(139, 90, 131, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Buttons */
+.btn {
+  width: 140px;
+  background: linear-gradient(135deg, #8b5a83 0%, #5d4e75 100%);
+  border: none;
+  outline: none;
+  height: 46px;
+  border-radius: 14px;
+  color: #f7f5f3;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 18px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #5d4e75 0%, #4a3d5c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 90, 131, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn.transparent {
+  background: transparent;
+  border: 2px solid rgba(247, 245, 243, 0.4);
+  color: #f7f5f3;
+  width: 120px;
+  height: 42px;
+  font-size: 11px;
+}
+
+.btn.transparent:hover {
+  background: rgba(247, 245, 243, 0.1);
+  border-color: rgba(247, 245, 243, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Forgot Password Link */
+.forgot {
+  color: #8b5a83;
+  font-size: 0.875rem;
+  text-decoration: none;
+  margin: 12px 0 20px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+.forgot:hover {
+  color: #5d4e75;
+}
+
+/* Error Messages */
+.error-message {
+  color: #d63384;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+  padding: 10px 14px;
+  background: #fdf2f8;
+  border: 1px solid #f9a8d4;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+/* Loading State */
+.btn:disabled {
+  position: relative;
+}
+
+.btn:disabled::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid #f7f5f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .forms-container {
+    width: 95%;
+    max-width: 800px;
+  }
+  
+  .signin-pair .sign-in-form,
+  .signin-pair .signin-panel,
+  .signup-pair .signup-panel,
+  .signup-pair .sign-up-form {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .forms-container {
+    width: 95%;
+    height: 600px;
+    border-radius: 18px;
+  }
+  
+  .form-panel-pair {
+    flex-direction: column;
+  }
+  
+  .signin-pair .sign-in-form,
+  .signin-pair .signin-panel,
+  .signup-pair .signup-panel,
+  .signup-pair .sign-up-form {
+    width: 100%;
+    height: 50%;
+    padding: 0 30px;
+    border-radius: 0;
+  }
+  
+  .signin-pair .sign-in-form {
+    border-radius: 18px 18px 0 0;
+  }
+  
+  .signin-pair .signin-panel {
+    border-radius: 0 0 18px 18px;
+  }
+  
+  .signup-pair .signup-panel {
+    border-radius: 18px 18px 0 0;
+  }
+  
+  .signup-pair .sign-up-form {
+    border-radius: 0 0 18px 18px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .panel-content h3 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .forms-container {
+    height: 550px;
+    margin: 20px;
+    width: calc(100vw - 40px);
+    border-radius: 16px;
+  }
+  
+  .signin-pair .sign-in-form,
+  .signin-pair .signin-panel,
+  .signup-pair .signup-panel,
+  .signup-pair .sign-up-form {
+    padding: 0 25px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .input-field {
+    max-width: 260px;
+    height: 46px;
+  }
+}
