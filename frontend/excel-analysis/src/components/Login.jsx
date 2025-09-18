@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './Login.css';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   
   // Sign In form data
   const [signInData, setSignInData] = useState({
@@ -28,27 +29,23 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signInData)
-      });
+      // Simulate successful login for demo
+      const mockUser = {
+        id: 1,
+        name: signInData.email.split('@')[0],
+        email: signInData.email,
+        role: 'user'
+      };
       
-      const data = await response.json();
+      const mockToken = 'demo-token-' + Date.now();
       
-      if (response.ok && data.success) {
-        // Store token and user data in memory for now
-        // localStorage.setItem('token', data.token);
-        // localStorage.setItem('user', JSON.stringify(data.user));
-        
-        console.log('Sign in successful:', data);
-        alert('Sign in successful! (Check console for details)');
-        // navigate('/dashboard');
-      } else {
-        setError(data.message || 'Sign in failed');
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      if (onLogin) {
+        onLogin();
       }
+      navigate('/');
     } catch (err) {
       setError('Network error. Please try again.');
       console.error('Sign in error:', err);
@@ -64,27 +61,23 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signUpData)
-      });
+      // Simulate successful signup for demo
+      const mockUser = {
+        id: Date.now(),
+        name: signUpData.name,
+        email: signUpData.email,
+        role: 'user'
+      };
       
-      const data = await response.json();
+      const mockToken = 'demo-token-' + Date.now();
       
-      if (response.ok && data.success) {
-        // Store token and user data in memory for now
-        // localStorage.setItem('token', data.token);
-        // localStorage.setItem('user', JSON.stringify(data.user));
-        
-        console.log('Sign up successful:', data);
-        alert('Sign up successful! (Check console for details)');
-        // navigate('/dashboard');
-      } else {
-        setError(data.message || 'Sign up failed');
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      if (onLogin) {
+        onLogin();
       }
+      navigate('/');
     } catch (err) {
       setError('Network error. Please try again.');
       console.error('Sign up error:', err);

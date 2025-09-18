@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
+import { generatePDFReport, downloadCSVReport, generateAnalysisReport } from '../utils/reportGenerator';
 
 const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
   const [selectedFile, setSelectedFile] = useState('');
@@ -8,6 +9,8 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
   const [yAxis, setYAxis] = useState('');
   const [chartType, setChartType] = useState('bar');
   const [chart, setChart] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentAnalysis, setCurrentAnalysis] = useState(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -25,6 +28,7 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
       setSelectedData(file);
       setXAxis('');
       setYAxis('');
+      setCurrentAnalysis(null);
       
       // Destroy existing chart
       if (chart) {
@@ -37,6 +41,8 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
   const generateChart = () => {
     if (!selectedData || !xAxis || !yAxis) return;
 
+    setIsGenerating(true);
+
     // Destroy existing chart
     if (chart) {
       chart.destroy();
@@ -46,8 +52,35 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
     const data = selectedData.data;
 
     // Prepare chart data
-    const labels = data.map(row => row[xAxis]);
-    const values = data.map(row => parseFloat(row[yAxis]) || 0);
+    const processedData = {};
+    
+    data.forEach(row => {
+      const xValue = row[xAxis];
+      const yValue = parseFloat(row[yAxis]) || 0;
+      
+      if (processedData[xValue]) {
+        processedData[xValue].push(yValue);
+      } else {
+        processedData[xValue] = [yValue];
+      }
+    });
+    
+    const labels = Object.keys(processedData);
+    const values = labels.map(label => {
+      const vals = processedData[label];
+      return vals.reduce((a, b) => a + b, 0) / vals.length; // Average
+    });
+
+    const colors = [
+      'rgba(54, 162, 235, 0.8)',
+      'rgba(255, 99, 132, 0.8)',
+      'rgba(255, 205, 86, 0.8)',
+      'rgba(75, 192, 192, 0.8)',
+      'rgba(153, 102, 255, 0.8)',
+      'rgba(255, 159, 64, 0.8)',
+      'rgba(199, 199, 199, 0.8)',
+      'rgba(83, 102, 255, 0.8)'
+    ];
 
     const chartConfig = {
       type: chartType,
@@ -56,39 +89,41 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
         datasets: [{
           label: yAxis,
           data: values,
-          backgroundColor: [
-            'rgba(54, 162, 235, 0.8)',
-            'rgba(255, 99, 132, 0.8)',
-            'rgba(255, 205, 86, 0.8)',
-            'rgba(75, 192, 192, 0.8)',
-            'rgba(153, 102, 255, 0.8)',
-            'rgba(255, 159, 64, 0.8)'
-          ],
-          borderColor: [
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 99, 132, 1)',
-            'rgba(255, 205, 86, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)'
-          ],
+          backgroundColor: chartType === 'pie' ? colors : colors[0],
+          borderColor: chartType === 'pie' ? colors.map(c => c.replace('0.8', '1')) : colors[0].replace('0.8', '1'),
           borderWidth: 2
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
-            text: `${yAxis} by ${xAxis}`
+            text: `${yAxis} by ${xAxis}`,
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
           },
           legend: {
-            display: chartType === 'pie'
+            display: true,
+            position: 'top'
           }
         },
         scales: chartType !== 'pie' ? {
+          x: {
+            title: {
+              display: true,
+              text: xAxis
+            }
+          },
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: yAxis
+            }
           }
         } : {}
       }
@@ -97,14 +132,22 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
     const newChart = new Chart(ctx, chartConfig);
     setChart(newChart);
 
-    // Save analysis
-    onAnalysisComplete({
+    const stats = calculateStats();
+    const analysisData = {
       fileName: selectedData.name,
       chartType,
       xAxis,
       yAxis,
-      data: { labels, values }
-    });
+      data: { labels, values },
+      stats
+    };
+
+    setCurrentAnalysis(analysisData);
+
+    // Save analysis
+    onAnalysisComplete(analysisData);
+
+    setIsGenerating(false);
   };
 
   const calculateStats = () => {
@@ -120,10 +163,55 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
     const avg = sum / values.length;
     const min = Math.min(...values);
     const max = Math.max(...values);
+    const median = values.sort((a, b) => a - b)[Math.floor(values.length / 2)];
 
-    return { sum, avg, min, max, count: values.length };
+    return { sum, avg, min, max, median, count: values.length };
   };
 
+  const downloadPDFReport = async () => {
+    if (!currentAnalysis || !chart) return;
+
+    try {
+      const pdf = await generatePDFReport(currentAnalysis, chartRef.current);
+      pdf.save(`analysis-report-${currentAnalysis.fileName}-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF report:', error);
+      alert('Error generating PDF report. Please try again.');
+    }
+  };
+
+  const downloadJSONReport = () => {
+    if (!currentAnalysis) return;
+
+    const fullReport = generateAnalysisReport(currentAnalysis);
+    const dataStr = JSON.stringify(fullReport, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `analysis-report-${currentAnalysis.fileName}-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const downloadCSVData = () => {
+    if (!selectedData) return;
+    
+    downloadCSVReport(
+      selectedData.data,
+      `data-export-${selectedData.name}-${new Date().toISOString().split('T')[0]}.csv`
+    );
+  };
+
+  const downloadChartImage = () => {
+    if (!chart) return;
+
+    const link = document.createElement('a');
+    link.download = `chart-${selectedData.name}-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = chart.toBase64Image();
+    link.click();
+  };
   const stats = calculateStats();
 
   return (
@@ -194,6 +282,8 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
                 <option value="bar">Bar Chart</option>
                 <option value="line">Line Chart</option>
                 <option value="pie">Pie Chart</option>
+                <option value="doughnut">🍩 Doughnut Chart</option>
+                <option value="radar">🎯 Radar Chart</option>
               </select>
             </div>
 
@@ -202,7 +292,7 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
               disabled={!xAxis || !yAxis}
               className="generate-btn"
             >
-              Generate Chart
+              {isGenerating ? '⏳ Generating...' : '🎨 Generate Chart'}
             </button>
           </>
         )}
@@ -210,16 +300,34 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
 
       {selectedData && (
         <div className="analysis-content">
-          <div className="chart-section">
-            <h3>Chart Visualization</h3>
-            <div className="chart-container">
-              <canvas ref={chartRef}></canvas>
+          {chart && (
+            <div className="chart-section">
+              <div className="chart-header">
+                <h3>📊 Chart Visualization</h3>
+                <div className="chart-actions">
+                  <button onClick={downloadChartImage} className="action-btn small">
+                    📷 Download Image
+                  </button>
+                  <button onClick={downloadPDFReport} className="action-btn small primary">
+                    📄 PDF Report
+                  </button>
+                  <button onClick={downloadJSONReport} className="action-btn small">
+                    📋 JSON Report
+                  </button>
+                  <button onClick={downloadCSVData} className="action-btn small secondary">
+                    📊 Export CSV
+                  </button>
+                </div>
+              </div>
+              <div className="chart-container">
+                <canvas ref={chartRef}></canvas>
+              </div>
             </div>
-          </div>
+          )}
 
           {stats && (
             <div className="stats-section">
-              <h3>Statistics</h3>
+              <h3>📊 Statistical Summary</h3>
               <div className="stats-grid">
                 <div className="stat-item">
                   <span className="stat-label">Count:</span>
@@ -234,6 +342,10 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
                   <span className="stat-value">{stats.avg.toFixed(2)}</span>
                 </div>
                 <div className="stat-item">
+                  <span className="stat-label">Median:</span>
+                  <span className="stat-value">{stats.median?.toFixed(2) || 'N/A'}</span>
+                </div>
+                <div className="stat-item">
                   <span className="stat-label">Min:</span>
                   <span className="stat-value">{stats.min}</span>
                 </div>
@@ -242,11 +354,33 @@ const DataAnalysis = ({ uploadedFiles, onAnalysisComplete }) => {
                   <span className="stat-value">{stats.max}</span>
                 </div>
               </div>
+              
+              {currentAnalysis && (
+                <div className="insights-section">
+                  <h4>💡 Insights & Recommendations</h4>
+                  <div className="insights-list">
+                    {generateAnalysisReport(currentAnalysis).insights.map((insight, index) => (
+                      <div key={index} className="insight-item">
+                        <span className="insight-icon">💡</span>
+                        <span>{insight}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="recommendations-list">
+                    {generateAnalysisReport(currentAnalysis).recommendations.map((rec, index) => (
+                      <div key={index} className="recommendation-item">
+                        <span className="recommendation-icon">💡</span>
+                        <span>{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           <div className="data-preview">
-            <h3>Data Preview</h3>
+            <h3>👀 Data Preview</h3>
             <div className="table-container">
               <table className="data-table">
                 <thead>
